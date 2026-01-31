@@ -4,10 +4,8 @@ export default function ThemeScript() {
     try {
       var saved = localStorage.getItem("theme");
       var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-      var isDark = saved ? saved === "dark" : prefersDark;
-
-      if (isDark) document.documentElement.classList.add("dark");
-      else document.documentElement.classList.remove("dark");
+      var theme = saved ? saved : (prefersDark ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", theme);
     } catch (e) {}
   })();
   `;

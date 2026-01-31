@@ -4,18 +4,25 @@ import { useEffect, useState } from "react";
 
 export default function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
-  const [dark, setDark] = useState(false);
+  const [theme, setTheme] = useState<"light" | "dark">("light");
 
   useEffect(() => {
     setMounted(true);
-    setDark(document.documentElement.classList.contains("dark"));
+
+    // اقرأ الثيم الحالي من data-theme أو localStorage
+    const saved = (localStorage.getItem("theme") as any) || null;
+    const currentAttr = document.documentElement.getAttribute("data-theme") as "light" | "dark" | null;
+
+    const initial = (currentAttr || saved || "light") as "light" | "dark";
+    document.documentElement.setAttribute("data-theme", initial);
+    setTheme(initial);
   }, []);
 
   function toggle() {
-    const next = !document.documentElement.classList.contains("dark");
-    document.documentElement.classList.toggle("dark", next);
-    localStorage.setItem("theme", next ? "dark" : "light");
-    setDark(next);
+    const next = theme === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    localStorage.setItem("theme", next);
+    setTheme(next);
   }
 
   if (!mounted) return null;
@@ -24,11 +31,15 @@ export default function ThemeToggle() {
     <button
       type="button"
       className="iconBtn themeBtn"
-      onClick={toggle}
-      aria-label={dark ? "الوضع الفاتح" : "الوضع الداكن"}
-      title={dark ? "الوضع الفاتح" : "الوضع الداكن"}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation(); // ✅ يمنع أي handler فوقه يبوّظ الضغط
+        toggle();
+      }}
+      aria-label={theme === "dark" ? "الوضع الفاتح" : "الوضع الداكن"}
+      title={theme === "dark" ? "الوضع الفاتح" : "الوضع الداكن"}
     >
-      {dark ? "☀️" : "🌙"}
+      {theme === "dark" ? "☀️" : "🌙"}
     </button>
   );
 }

@@ -810,3 +810,56 @@ p{ line-height:1.75; margin: 8px 0 0; }
   .topnav__links.isOpen{ display:flex !important; }
 }
 
+/* ===== HARD OVERRIDE THEME (must be LAST in globals.css) ===== */
+
+:root{
+  /* Light default */
+  --bg: #f7f8fb !important;
+  --bg2:#eef2f8 !important;
+  --panel:#ffffff !important;
+  --panel2:#f7f9ff !important;
+  --border:#d9e2f2 !important;
+  --text:#0b1220 !important;
+  --muted:#475569 !important;
+
+  --accent:#2563eb !important;
+  --accent2:#38bdf8 !important;
+
+  --danger:#dc2626 !important;
+  --success:#16a34a !important;
+
+  --shadow: 0 16px 42px rgba(2,6,23,.10) !important;
+  --shadow-soft: 0 10px 24px rgba(2,6,23,.08) !important;
+}
+
+/* Dark when data-theme="dark" */
+:root[data-theme="dark"]{
+  --bg: #0b1220 !important;
+  --bg2:#070d18 !important;
+  --panel:#121a2a !important;
+  --panel2:#0f1729 !important;
+  --border:#1f2a44 !important;
+  --text:#eef4ff !important;
+  --muted:#b9c5e8 !important;
+
+  --accent:#6aa9ff !important;
+  --accent2:#8dd6ff !important;
+
+  --danger:#ff6a6a !important;
+  --success:#41d89d !important;
+
+  --shadow: 0 16px 42px rgba(0,0,0,.36) !important;
+  --shadow-soft: 0 10px 24px rgba(0,0,0,.22) !important;
+}
+
+/* color-scheme sync */
+html{ color-scheme: light; }
+:root[data-theme="dark"]{ color-scheme: dark; }
+
+/* button */
+.themeBtn{
+  height: 38px;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
