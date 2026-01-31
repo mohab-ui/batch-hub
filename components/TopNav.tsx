@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { getMyProfile, isModerator, UserRole } from "@/lib/profile";
+import ThemeToggle from "@/app/ThemeToggle";
 
 function roleLabel(role: UserRole | null) {
   if (role === "admin") return "Admin";
@@ -13,48 +14,11 @@ function roleLabel(role: UserRole | null) {
   return "...";
 }
 
-type Theme = "dark" | "light";
-
 export default function TopNav() {
   const router = useRouter();
   const [role, setRole] = useState<UserRole | null>(null);
   const [open, setOpen] = useState(false);
 
-  // ===== Theme =====
-  const [theme, setTheme] = useState<Theme>("dark");
-  const isDark = theme === "dark";
-
-  useEffect(() => {
-    // load theme from localStorage
-    try {
-      const saved = localStorage.getItem("theme") as Theme | null;
-      if (saved === "light" || saved === "dark") setTheme(saved);
-    } catch {
-      // ignore
-    }
-  }, []);
-
-  useEffect(() => {
-    // apply theme class on <html>
-    const root = document.documentElement;
-    root.classList.remove("theme-dark", "theme-light");
-    root.classList.add(isDark ? "theme-dark" : "theme-light");
-
-    // optionally help form controls
-    root.style.colorScheme = isDark ? "dark" : "light";
-
-    try {
-      localStorage.setItem("theme", theme);
-    } catch {
-      // ignore
-    }
-  }, [theme, isDark]);
-
-  function toggleTheme() {
-    setTheme((p) => (p === "dark" ? "light" : "dark"));
-  }
-
-  // ===== Profile / Role =====
   useEffect(() => {
     let mounted = true;
     getMyProfile().then((p) => {
@@ -81,24 +45,14 @@ export default function TopNav() {
           دفعتنا
         </Link>
 
-        {/* أدوات يمين: زر الثيم + زر القائمة للموبايل */}
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <button
-            className="iconBtn"
-            onClick={toggleTheme}
-            aria-label={isDark ? "تحويل للوضع الفاتح" : "تحويل للوضع الداكن"}
-            title={isDark ? "Light Mode" : "Dark Mode"}
-            type="button"
-          >
-            {isDark ? "☀️" : "🌙"}
-          </button>
-
+        {/* ✅ هنا خليت زرار الثيم + زرار المنيو في الهيدر نفسه (يظهر على اللاب والموبايل) */}
+        <div className="topnav__actions">
+          <ThemeToggle />
           <button
             className="iconBtn navToggle"
             onClick={() => setOpen((v) => !v)}
             aria-label={open ? "إغلاق القائمة" : "فتح القائمة"}
             aria-expanded={open}
-            type="button"
           >
             {open ? "✕" : "☰"}
           </button>
@@ -108,24 +62,14 @@ export default function TopNav() {
           className={`topnav__links ${open ? "isOpen" : ""}`}
           onClick={() => setOpen(false)}
         >
-          <Link className="navLink" href="/dashboard">
-            المواد
-          </Link>
-          <Link className="navLink" href="/mcq">
-            اختبارات MCQ
-          </Link>
+          <Link className="navLink" href="/dashboard">المواد</Link>
+          <Link className="navLink" href="/mcq">اختبارات MCQ</Link>
 
           {canManage ? (
             <>
-              <Link className="navLink" href="/upload">
-                رفع محتوى
-              </Link>
-              <Link className="navLink" href="/admin/courses">
-                إدارة المواد
-              </Link>
-              <Link className="navLink" href="/admin/mcq">
-                إدارة الأسئلة
-              </Link>
+              <Link className="navLink" href="/upload">رفع محتوى</Link>
+              <Link className="navLink" href="/admin/courses">إدارة المواد</Link>
+              <Link className="navLink" href="/admin/mcq">إدارة الأسئلة</Link>
             </>
           ) : null}
 
@@ -133,7 +77,7 @@ export default function TopNav() {
             👤 {roleLabel(role)}
           </span>
 
-          <button className="btn btn--ghost" onClick={logout} type="button">
+          <button className="btn btn--ghost" onClick={logout}>
             تسجيل خروج
           </button>
         </nav>

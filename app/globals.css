@@ -123,6 +123,17 @@ a{ color:inherit; text-decoration:none; }
   gap:12px;
   min-height: 64px;
 }
+.topnav__actions{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+/* على اللاب زرار المنيو مخفي زي ما هو */
+@media(min-width: 861px){
+  .navToggle{ display:none; }
+}
+
 
 .brand{
   font-weight: 900;
