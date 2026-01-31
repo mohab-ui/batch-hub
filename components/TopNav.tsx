@@ -41,7 +41,7 @@ export default function TopNav() {
       <div className="container topnav__inner">
         <Link className="brand" href="/dashboard" title="العودة للمواد">
           <span className="brand__dot" aria-hidden />
-          دفعتنا Hub
+          دفعتنا
         </Link>
 
         <button

@@ -14,7 +14,7 @@ export default function HomePage() {
   return (
     <main className="container">
       <div className="card">
-        <h1>دفعتنا Hub</h1>
+        <h1>دفعتنا</h1>
         <p className="muted">
           موقع بسيط ومنظم علشان الدفعة تلاقي كل ملفات المواد (سلايدات/ملخصات/امتحانات
           سابقة/ريكوردات) في مكان واحد مع بحث وفلاتر.
@@ -30,15 +30,6 @@ export default function HomePage() {
               تسجيل دخول
             </Link>
           )}
-
-          <a
-            className="btn btn--ghost"
-            href="https://supabase.com"
-            target="_blank"
-            rel="noreferrer"
-          >
-            يعمل على Supabase
-          </a>
         </div>
       </div>
 
@@ -58,8 +49,7 @@ export default function HomePage() {
       </div>
 
       <p className="muted" style={{ marginTop: 12 }}>
-        ملاحظة قانونية: شاركوا فقط محتوى عندكم حق نشره/توزيعه (مذكراتكم، ملفات
-        دكاترة مسموح مشاركتها، أو كتب Open Access/OER).
+        ملاحظة قانونية: كل حقوق الطبع والنشر محفوظة لدى طلاب الدفعة الرابعة.
       </p>
     </main>
   );

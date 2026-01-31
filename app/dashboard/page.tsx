@@ -234,7 +234,7 @@ export default function DashboardPage() {
         </div>
 
         <p className="muted" style={{ marginTop: 12 }}>
-          لو أنت مشرف: تقدر تضيف/تحذف مواد من صفحة «إدارة المواد» في الشريط العلوي.
+          جميع حقوق الطبع والنشر محفوظة
         </p>
       </main>
     </AuthGuard>

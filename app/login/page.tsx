@@ -56,7 +56,7 @@ export default function LoginPage() {
       }
 
       setErr(
-        "تم إنشاء الحساب. لو مفعلين Email confirmation، افتح الإيميل واضغط تأكيد وبعدها سجّل دخول."
+        "تم إنشاء الحساب."
       );
     } finally {
       setBusy(false);

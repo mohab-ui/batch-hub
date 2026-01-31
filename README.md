@@ -1,4 +1,4 @@
-# دفعتنا Hub (Batch Hub)
+# دفعتنا (Batch Hub)
 
 مكتبة رقمية منظمة للدفعة — مبنية على Next.js + Supabase — فيها:
 - مواد (Courses)
