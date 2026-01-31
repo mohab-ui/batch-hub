@@ -34,7 +34,9 @@ export default function McqPage() {
 
   const [courseId, setCourseId] = useState<string>(sp.get("course") ?? "");
   const [lectureId, setLectureId] = useState<string>(sp.get("lecture") ?? "");
-  const [mode, setMode] = useState<"practice" | "exam">((sp.get("mode") as any) === "exam" ? "exam" : "practice");
+  const [mode, setMode] = useState<"practice" | "exam">(
+    (sp.get("mode") as any) === "exam" ? "exam" : "practice"
+  );
 
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -44,11 +46,18 @@ export default function McqPage() {
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [submitted, setSubmitted] = useState(false);
 
+  const [quizId, setQuizId] = useState<string | null>(null);
+
   const current = questions[idx];
 
   useEffect(() => {
     async function loadCourses() {
-      const { data } = await supabase.from("courses").select("id, code, name").order("code", { ascending: true });
+      const { data, error } = await supabase
+        .from("courses")
+        .select("id, code, name")
+        .order("code", { ascending: true });
+
+      if (error) return;
       setCourses((data ?? []) as Course[]);
     }
     loadCourses();
@@ -59,12 +68,13 @@ export default function McqPage() {
       setLectures([]);
       if (!courseId) return;
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("lectures")
         .select("id, title, order_index")
         .eq("course_id", courseId)
         .order("order_index", { ascending: true });
 
+      if (error) return;
       setLectures((data ?? []) as Lecture[]);
     }
     loadLectures();
@@ -79,8 +89,15 @@ export default function McqPage() {
     setIdx(0);
     setAnswers({});
     setQuestions([]);
+    setQuizId(null);
 
     try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        setErr("لازم تسجل دخول الأول.");
+        return;
+      }
+
       if (!courseId) {
         setErr("اختار المادة الأول.");
         return;
@@ -96,7 +113,7 @@ export default function McqPage() {
       const { data, error } = await q.limit(50);
 
       if (error) {
-        setErr("في مشكلة في تحميل الأسئلة. تأكد إن جدول mcq_questions موجود وأن عندك صلاحية.");
+        setErr("في مشكلة في تحميل الأسئلة.");
         return;
       }
 
@@ -107,6 +124,46 @@ export default function McqPage() {
       }
 
       list.sort(() => Math.random() - 0.5);
+
+      // ✅ 1) Create quiz attempt in mcq_quizzes
+      const { data: insertedQuiz, error: insQuizErr } = await supabase
+        .from("mcq_quizzes")
+        .insert([
+          {
+            user_id: userData.user.id,
+            course_id: courseId,
+            lecture_id: lectureId ? lectureId : null,
+            mode,
+            total_questions: list.length,
+            correct_count: 0,
+            score: 0,
+            started_at: new Date().toISOString(),
+            submitted_at: null,
+          },
+        ])
+        .select("id")
+        .single();
+
+      if (insQuizErr || !insertedQuiz?.id) {
+        setErr("فشل إنشاء محاولة (mcq_quizzes). غالبًا RLS مانع الطالب.");
+        return;
+      }
+
+      const newQuizId = insertedQuiz.id as string;
+      setQuizId(newQuizId);
+
+      // ✅ 2) Save quiz questions order
+      const quizQs = list.map((qq, i) => ({
+        quiz_id: newQuizId,
+        question_id: qq.id,
+        order_index: i,
+      }));
+
+      const { error: insQQErr } = await supabase.from("mcq_quiz_questions").insert(quizQs);
+      if (insQQErr) {
+        setErr("فشل حفظ ترتيب الأسئلة (mcq_quiz_questions).");
+        return;
+      }
 
       setQuestions(list);
 
@@ -128,7 +185,10 @@ export default function McqPage() {
   async function submit() {
     setErr(null);
 
-    if (!questions.length) return;
+    if (!questions.length || !quizId) {
+      setErr("ابدأ اختبار الأول.");
+      return;
+    }
 
     const unanswered = questions.filter((q) => answers[q.id] === undefined).length;
     if (unanswered > 0) {
@@ -141,30 +201,48 @@ export default function McqPage() {
 
     setSubmitted(true);
 
-    try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) return;
+    // ✅ Save answers
+    const now = new Date().toISOString();
+    const rows = questions.map((q) => ({
+      quiz_id: quizId,
+      question_id: q.id,
+      selected_index: answers[q.id],
+      is_correct: answers[q.id] === q.correct_index,
+      answered_at: now,
+    }));
 
-      await supabase.from("mcq_attempts").insert([
-        {
-          user_id: userData.user.id,
-          course_id: courseId,
-          lecture_id: lectureId ? lectureId : null,
-          mode,
-          total_questions: questions.length,
-          correct_count: correct,
-          score,
-          started_at: new Date().toISOString(),
-          submitted_at: new Date().toISOString(),
-        },
-      ]);
-    } catch {
-      // ignore
+    const { error: ansErr } = await supabase.from("mcq_quiz_answers").insert(rows);
+    if (ansErr) {
+      setErr("فشل حفظ الإجابات (mcq_quiz_answers). غالبًا RLS.");
+      return;
+    }
+
+    // ✅ Update quiz summary
+    const { error: updErr } = await supabase
+      .from("mcq_quizzes")
+      .update({
+        total_questions: questions.length,
+        correct_count: correct,
+        score,
+        submitted_at: now,
+      })
+      .eq("id", quizId);
+
+    if (updErr) {
+      setErr("فشل تحديث نتيجة المحاولة (mcq_quizzes).");
+      return;
     }
   }
 
-  const correctCount = useMemo(() => questions.filter((q) => answers[q.id] === q.correct_index).length, [questions, answers]);
-  const progress = useMemo(() => (questions.length ? `${idx + 1}/${questions.length}` : "0/0"), [idx, questions.length]);
+  const correctCount = useMemo(
+    () => questions.filter((q) => answers[q.id] === q.correct_index).length,
+    [questions, answers]
+  );
+
+  const progress = useMemo(
+    () => (questions.length ? `${idx + 1}/${questions.length}` : "0/0"),
+    [idx, questions.length]
+  );
 
   return (
     <AuthGuard>
@@ -207,7 +285,12 @@ export default function McqPage() {
 
             <div className="col-12 col-6">
               <label className="label">المحاضرة (اختياري)</label>
-              <select className="select" value={lectureId || ""} onChange={(e) => setLectureId(e.target.value)} disabled={!courseId}>
+              <select
+                className="select"
+                value={lectureId || ""}
+                onChange={(e) => setLectureId(e.target.value)}
+                disabled={!courseId}
+              >
                 <option value="">(كل أسئلة المادة)</option>
                 {lectures.map((l) => (
                   <option key={l.id} value={l.id}>
@@ -275,9 +358,7 @@ export default function McqPage() {
                   selected ? "mcqOption--selected" : "",
                   showCorrect && isCorrect ? "mcqOption--correct" : "",
                   showCorrect && selected && !isCorrect ? "mcqOption--wrong" : "",
-                ]
-                  .filter(Boolean)
-                  .join(" ");
+                ].filter(Boolean).join(" ");
 
                 return (
                   <button key={ci} className={cls} onClick={() => !submitted && choose(ci)}>
