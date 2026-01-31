@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { getMyProfile, isModerator, UserRole } from "@/lib/profile";
-import ThemeToggle from "@/components/ThemeToggle";
 
 function roleLabel(role: UserRole | null) {
   if (role === "admin") return "Admin";
@@ -45,39 +44,36 @@ export default function TopNav() {
           دفعتنا
         </Link>
 
-        {/* ✅ Desktop actions (زرار الثيم ظاهر دايمًا على اللاب) */}
-        <div className="topnav__right">
-          <ThemeToggle />
+        <button
+          className="iconBtn navToggle"
+          onClick={() => setOpen((v) => !v)}
+          aria-label={open ? "إغلاق القائمة" : "فتح القائمة"}
+          aria-expanded={open}
+        >
+          {open ? "✕" : "☰"}
+        </button>
 
-          {/* ✅ Hamburger يظهر موبايل فقط */}
-          <button
-            className="iconBtn navToggle"
-            onClick={() => setOpen((v) => !v)}
-            aria-label={open ? "إغلاق القائمة" : "فتح القائمة"}
-            aria-expanded={open}
-            type="button"
-          >
-            {open ? "✕" : "☰"}
-          </button>
-        </div>
-
-        <nav className={`topnav__links ${open ? "isOpen" : ""}`}>
-          <Link className="navLink" href="/dashboard" onClick={() => setOpen(false)}>
+        <nav
+          className={`topnav__links ${open ? "isOpen" : ""}`}
+          onClick={() => setOpen(false)}
+        >
+          <Link className="navLink" href="/dashboard">
             المواد
           </Link>
-          <Link className="navLink" href="/mcq" onClick={() => setOpen(false)}>
+
+          <Link className="navLink" href="/mcq">
             اختبارات MCQ
           </Link>
 
           {canManage ? (
             <>
-              <Link className="navLink" href="/upload" onClick={() => setOpen(false)}>
+              <Link className="navLink" href="/upload">
                 رفع محتوى
               </Link>
-              <Link className="navLink" href="/admin/courses" onClick={() => setOpen(false)}>
+              <Link className="navLink" href="/admin/courses">
                 إدارة المواد
               </Link>
-              <Link className="navLink" href="/admin/mcq" onClick={() => setOpen(false)}>
+              <Link className="navLink" href="/admin/mcq">
                 إدارة الأسئلة
               </Link>
             </>
@@ -87,7 +83,7 @@ export default function TopNav() {
             👤 {roleLabel(role)}
           </span>
 
-          <button className="btn btn--ghost" onClick={logout} type="button">
+          <button className="btn btn--ghost" onClick={logout}>
             تسجيل خروج
           </button>
         </nav>
