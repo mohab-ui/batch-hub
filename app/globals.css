@@ -10,30 +10,13 @@
    - Dark when html has .theme-dark
    ========================= */
 
+/*
+  Global theme tokens
+  Light = default
+  Dark = when html has .dark
+*/
 :root{
-  /* Dark theme (default) */
-  --bg: #0b1220;
-  --bg2:#070d18;
-  --panel:#121a2a;
-  --panel2:#0f1729;
-  --border:#1f2a44;
-  --text:#eef4ff;
-  --muted:#b9c5e8;
-  --accent:#6aa9ff;
-  --accent2:#8dd6ff;
-  --danger:#ff6a6a;
-  --success:#41d89d;
-
-  --shadow: 0 16px 42px rgba(0,0,0,.36);
-  --shadow-soft: 0 10px 24px rgba(0,0,0,.22);
-  --radius: 16px;
-  --radius-sm: 12px;
-
-  --container: min(1120px, calc(100% - 32px));
-}
-
-/* Light theme (when .theme-light is present) */
-:root.theme-light{
+  /* Light theme (default) */
   --bg: #f7f8fb;
   --bg2:#eef2f8;
   --panel:#ffffff;
@@ -50,17 +33,33 @@
 
   --shadow: 0 16px 42px rgba(2,6,23,.10);
   --shadow-soft: 0 10px 24px rgba(2,6,23,.08);
+  --radius: 16px;
+  --radius-sm: 12px;
+
+  --container: min(1120px, calc(100% - 32px));
 }
 
-/* Dark theme explicitly (optional, for clarity) */
-:root.theme-dark{
-  /* same as :root defaults */
+/* Dark theme (active when .dark exists on <html>) */
+:root.dark{
+  --bg: #0b1220;
+  --bg2:#070d18;
+  --panel:#121a2a;
+  --panel2:#0f1729;
+  --border:#1f2a44;
+  --text:#eef4ff;
+  --muted:#b9c5e8;
+  --accent:#6aa9ff;
+  --accent2:#8dd6ff;
+  --danger:#ff6a6a;
+  --success:#41d89d;
+
+  --shadow: 0 16px 42px rgba(0,0,0,.36);
+  --shadow-soft: 0 10px 24px rgba(0,0,0,.22);
 }
 
-*{ box-sizing:border-box; }
 
-html{
-  color-scheme: light dark;
+html{ color-scheme: light; }
+html.dark{ color-scheme: dark; }
   -webkit-text-size-adjust: 100%;
 }
 
