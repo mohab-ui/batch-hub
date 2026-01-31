@@ -2,8 +2,16 @@
   Global theme tokens
   الهدف: وضوح عالي (contrast) + شكل نضيف + تجربة كويسة على الموبايل.
 */
+
+/* =========================
+   THEME TOKENS
+   - Default: dark via :root
+   - Light when html has .theme-light
+   - Dark when html has .theme-dark
+   ========================= */
+
 :root{
-  /* Dark theme (default when .dark exists) */
+  /* Dark theme (default) */
   --bg: #0b1220;
   --bg2:#070d18;
   --panel:#121a2a;
@@ -24,8 +32,8 @@
   --container: min(1120px, calc(100% - 32px));
 }
 
-/* Light theme (active when .dark is NOT present) */
-:root:not(.dark){
+/* Light theme (when .theme-light is present) */
+:root.theme-light{
   --bg: #f7f8fb;
   --bg2:#eef2f8;
   --panel:#ffffff;
@@ -42,6 +50,11 @@
 
   --shadow: 0 16px 42px rgba(2,6,23,.10);
   --shadow-soft: 0 10px 24px rgba(2,6,23,.08);
+}
+
+/* Dark theme explicitly (optional, for clarity) */
+:root.theme-dark{
+  /* same as :root defaults */
 }
 
 *{ box-sizing:border-box; }

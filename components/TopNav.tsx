@@ -13,19 +13,49 @@ function roleLabel(role: UserRole | null) {
   return "...";
 }
 
+type Theme = "dark" | "light";
+
 export default function TopNav() {
   const router = useRouter();
   const [role, setRole] = useState<UserRole | null>(null);
   const [open, setOpen] = useState(false);
 
-  // theme
-  const [isDark, setIsDark] = useState(true);
+  // ===== Theme =====
+  const [theme, setTheme] = useState<Theme>("dark");
+  const isDark = theme === "dark";
 
   useEffect(() => {
-    // init theme state from html class
-    const hasDark = document.documentElement.classList.contains("dark");
-    setIsDark(hasDark);
+    // load theme from localStorage
+    try {
+      const saved = localStorage.getItem("theme") as Theme | null;
+      if (saved === "light" || saved === "dark") setTheme(saved);
+    } catch {
+      // ignore
+    }
+  }, []);
 
+  useEffect(() => {
+    // apply theme class on <html>
+    const root = document.documentElement;
+    root.classList.remove("theme-dark", "theme-light");
+    root.classList.add(isDark ? "theme-dark" : "theme-light");
+
+    // optionally help form controls
+    root.style.colorScheme = isDark ? "dark" : "light";
+
+    try {
+      localStorage.setItem("theme", theme);
+    } catch {
+      // ignore
+    }
+  }, [theme, isDark]);
+
+  function toggleTheme() {
+    setTheme((p) => (p === "dark" ? "light" : "dark"));
+  }
+
+  // ===== Profile / Role =====
+  useEffect(() => {
     let mounted = true;
     getMyProfile().then((p) => {
       if (!mounted) return;
@@ -37,17 +67,6 @@ export default function TopNav() {
   }, []);
 
   const canManage = useMemo(() => isModerator(role as any), [role]);
-
-  function toggleTheme() {
-    const nextDark = !document.documentElement.classList.contains("dark");
-    if (nextDark) document.documentElement.classList.add("dark");
-    else document.documentElement.classList.remove("dark");
-
-    try {
-      localStorage.setItem("theme", nextDark ? "dark" : "light");
-    } catch {}
-    setIsDark(nextDark);
-  }
 
   async function logout() {
     await supabase.auth.signOut();
@@ -62,31 +81,8 @@ export default function TopNav() {
           دفعتنا
         </Link>
 
-        <button
-          className="iconBtn navToggle"
-          onClick={() => setOpen((v) => !v)}
-          aria-label={open ? "إغلاق القائمة" : "فتح القائمة"}
-          aria-expanded={open}
-        >
-          {open ? "✕" : "☰"}
-        </button>
-
-        <nav
-          className={`topnav__links ${open ? "isOpen" : ""}`}
-          onClick={() => setOpen(false)}
-        >
-          <Link className="navLink" href="/dashboard">المواد</Link>
-          <Link className="navLink" href="/mcq">اختبارات MCQ</Link>
-
-          {canManage ? (
-            <>
-              <Link className="navLink" href="/upload">رفع محتوى</Link>
-              <Link className="navLink" href="/admin/courses">إدارة المواد</Link>
-              <Link className="navLink" href="/admin/mcq">إدارة الأسئلة</Link>
-            </>
-          ) : null}
-
-          {/* زرار الثيم */}
+        {/* أدوات يمين: زر الثيم + زر القائمة للموبايل */}
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <button
             className="iconBtn"
             onClick={toggleTheme}
@@ -97,11 +93,47 @@ export default function TopNav() {
             {isDark ? "☀️" : "🌙"}
           </button>
 
+          <button
+            className="iconBtn navToggle"
+            onClick={() => setOpen((v) => !v)}
+            aria-label={open ? "إغلاق القائمة" : "فتح القائمة"}
+            aria-expanded={open}
+            type="button"
+          >
+            {open ? "✕" : "☰"}
+          </button>
+        </div>
+
+        <nav
+          className={`topnav__links ${open ? "isOpen" : ""}`}
+          onClick={() => setOpen(false)}
+        >
+          <Link className="navLink" href="/dashboard">
+            المواد
+          </Link>
+          <Link className="navLink" href="/mcq">
+            اختبارات MCQ
+          </Link>
+
+          {canManage ? (
+            <>
+              <Link className="navLink" href="/upload">
+                رفع محتوى
+              </Link>
+              <Link className="navLink" href="/admin/courses">
+                إدارة المواد
+              </Link>
+              <Link className="navLink" href="/admin/mcq">
+                إدارة الأسئلة
+              </Link>
+            </>
+          ) : null}
+
           <span className="chip" title="الدور الحالي">
             👤 {roleLabel(role)}
           </span>
 
-          <button className="btn btn--ghost" onClick={logout}>
+          <button className="btn btn--ghost" onClick={logout} type="button">
             تسجيل خروج
           </button>
         </nav>
