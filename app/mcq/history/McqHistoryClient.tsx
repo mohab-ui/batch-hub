@@ -6,8 +6,6 @@ import AuthGuard from "@/components/AuthGuard";
 import TopNav from "@/components/TopNav";
 import { supabase } from "@/lib/supabase";
 
-export const dynamic = "force-dynamic";
-
 type Course = { id: string; code: string; name: string };
 type Lecture = { id: string; title: string };
 
@@ -29,7 +27,13 @@ function fmtDate(s?: string | null) {
   return d.toLocaleString("ar-EG", { dateStyle: "medium", timeStyle: "short" });
 }
 
-export default function McqHistoryPage() {
+// لو رجع relation كـ array بالغلط ناخد أول عنصر
+function pickOne<T>(v: any): T | null {
+  if (!v) return null;
+  return Array.isArray(v) ? (v[0] ?? null) : v;
+}
+
+export default function McqHistoryClient() {
   const sp = useSearchParams();
   const courseFilter = sp.get("course") ?? "";
 
@@ -58,8 +62,9 @@ export default function McqHistoryPage() {
         return;
       }
 
+      // ✅ هنا التعديل المهم: mcq_quizzes بدل mcq_quiz_attempts
       const { data, error } = await supabase
-        .from("mcq_quiz_attempts")
+        .from("mcq_quizzes")
         .select(
           `
           id,
@@ -79,16 +84,15 @@ export default function McqHistoryPage() {
       if (!mounted) return;
 
       if (error) {
-        setErr("حصل خطأ في تحميل النتائج.");
+        setErr("حصل خطأ في تحميل المحاولات. (ممكن RLS مانع القراءة للطالب)");
         setRows([]);
         setLoading(false);
         return;
       }
 
-      // 🛠️ التعديل هنا: استخدام (any) عشان نمنع أخطاء الـ Build
-      const rawData = (data ?? []) as any[];
+      const raw = (data ?? []) as any[];
 
-      const normalized: Row[] = rawData.map((r) => ({
+      const normalized: Row[] = raw.map((r) => ({
         id: r.id,
         mode: r.mode,
         total_questions: r.total_questions,
@@ -96,9 +100,8 @@ export default function McqHistoryPage() {
         score: r.score,
         started_at: r.started_at,
         submitted_at: r.submitted_at,
-        // نتأكد إنها لو راجعة مصفوفة ناخد أول عنصر، ولو كائن ناخده زي ما هو
-        course: Array.isArray(r.course) ? r.course[0] ?? null : r.course,
-        lecture: Array.isArray(r.lecture) ? r.lecture[0] ?? null : r.lecture,
+        course: pickOne<Course>(r.course),
+        lecture: pickOne<Lecture>(r.lecture),
       }));
 
       setRows(normalized);
@@ -109,7 +112,7 @@ export default function McqHistoryPage() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [courseFilter]);
 
   return (
     <AuthGuard>
@@ -137,17 +140,21 @@ export default function McqHistoryPage() {
                 </div>
 
                 <div className="muted" style={{ fontSize: 13, marginTop: 6 }}>
-                  بدأ: {fmtDate(r.started_at)} •{" "}
-                  {r.mode === "practice" ? "تدريب" : "امتحان"} •{" "}
-                  {r.total_questions} سؤال
+                  بدأ: {fmtDate(r.started_at)} • {r.mode === "practice" ? "تدريب" : "امتحان"} • {r.total_questions} سؤال
                 </div>
 
-                <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
                   <span className="kpi">
                     ✅ صح: {r.correct_count} / {r.total_questions}
                   </span>
                   <span className="kpi">⭐ Score: {r.score}%</span>
                   <span className="kpi">🕒 تسليم: {fmtDate(r.submitted_at)}</span>
+
+                  <div style={{ flex: 1 }} />
+
+                  <a className="btn btn--ghost" href={`/mcq/results/${r.id}`}>
+                    عرض النتيجة
+                  </a>
                 </div>
               </div>
             ))}
