@@ -23,6 +23,7 @@ type QRow = {
 
 export default function AdminMcqQuestionsPage() {
   const [role, setRole] = useState<UserRole | null>(null);
+  const [loadingRole, setLoadingRole] = useState(true);
 
   const [courses, setCourses] = useState<Course[]>([]);
   const [lectures, setLectures] = useState<Lecture[]>([]);
@@ -35,33 +36,33 @@ export default function AdminMcqQuestionsPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    getMyProfile().then((p) => setRole(p?.role ?? null));
+    let mounted = true;
+
+    (async () => {
+      try {
+        const p = await getMyProfile();
+        if (!mounted) return;
+        setRole((p?.role as UserRole) ?? null);
+      } finally {
+        if (!mounted) return;
+        setLoadingRole(false);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const canManage = useMemo(() => isModerator(role as any), [role]);
-
-  if (role === null) {
-    return (
-      <AuthGuard>
-        <TopNav />
-        <main className="container">
-          <div className="card">
-            <h1>جاري التحميل…</h1>
-            <p className="muted">بنحدد صلاحيات الحساب.</p>
-          </div>
-        </main>
-      </AuthGuard>
-    );
-  }
-
 
   useEffect(() => {
     async function loadCourses() {
       const { data } = await supabase.from("courses").select("id, code, name").order("code", { ascending: true });
       setCourses((data ?? []) as Course[]);
     }
-    loadCourses();
-  }, []);
+    if (!loadingRole && canManage) loadCourses();
+  }, [loadingRole, canManage]);
 
   useEffect(() => {
     async function loadLectures() {
@@ -74,8 +75,8 @@ export default function AdminMcqQuestionsPage() {
         .order("order_index", { ascending: true });
       setLectures((data ?? []) as Lecture[]);
     }
-    loadLectures();
-  }, [courseId]);
+    if (!loadingRole && canManage) loadLectures();
+  }, [courseId, loadingRole, canManage]);
 
   async function loadQuestions() {
     setErr(null);
@@ -109,6 +110,20 @@ export default function AdminMcqQuestionsPage() {
     loadQuestions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canManage]);
+
+  if (loadingRole) {
+    return (
+      <AuthGuard>
+        <TopNav />
+        <main className="container">
+          <div className="card">
+            <h1>جاري التحميل…</h1>
+            <p className="muted">بنحدد صلاحيات الحساب.</p>
+          </div>
+        </main>
+      </AuthGuard>
+    );
+  }
 
   async function remove(id: string) {
     const ok = confirm("تأكيد حذف السؤال؟");
