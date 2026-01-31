@@ -45,47 +45,43 @@ export default function TopNav() {
           دفعتنا
         </Link>
 
-        <button
-          className="iconBtn navToggle"
-          onClick={() => setOpen((v) => !v)}
-          aria-label={open ? "إغلاق القائمة" : "فتح القائمة"}
-          aria-expanded={open}
-          type="button"
-        >
-          {open ? "✕" : "☰"}
-        </button>
+        {/* ✅ Actions: برا الهمبرجر (تظهر على اللاب والموبايل) */}
+        <div className="topnav__actions">
+          <ThemeToggle />
 
-        <nav
-          className={`topnav__links ${open ? "isOpen" : ""}`}
-          onClick={(e) => {
-            // نقفل القائمة في الموبايل بس لو ضغط على لينك
-            const t = e.target as HTMLElement;
-            if (t.closest("a")) setOpen(false);
-          }}
-        >
-          <Link className="navLink" href="/dashboard">
+          <button
+            className="iconBtn navToggle"
+            onClick={() => setOpen((v) => !v)}
+            aria-label={open ? "إغلاق القائمة" : "فتح القائمة"}
+            aria-expanded={open}
+            type="button"
+          >
+            {open ? "✕" : "☰"}
+          </button>
+        </div>
+
+        {/* ✅ الروابط نفسها */}
+        <nav className={`topnav__links ${open ? "isOpen" : ""}`}>
+          <Link className="navLink" href="/dashboard" onClick={() => setOpen(false)}>
             المواد
           </Link>
-          <Link className="navLink" href="/mcq">
+          <Link className="navLink" href="/mcq" onClick={() => setOpen(false)}>
             اختبارات MCQ
           </Link>
 
           {canManage ? (
             <>
-              <Link className="navLink" href="/upload">
+              <Link className="navLink" href="/upload" onClick={() => setOpen(false)}>
                 رفع محتوى
               </Link>
-              <Link className="navLink" href="/admin/courses">
+              <Link className="navLink" href="/admin/courses" onClick={() => setOpen(false)}>
                 إدارة المواد
               </Link>
-              <Link className="navLink" href="/admin/mcq">
+              <Link className="navLink" href="/admin/mcq" onClick={() => setOpen(false)}>
                 إدارة الأسئلة
               </Link>
             </>
           ) : null}
-
-          {/* ✅ زرار الثيم هنا جنبهم */}
-          <ThemeToggle />
 
           <span className="chip" title="الدور الحالي">
             👤 {roleLabel(role)}

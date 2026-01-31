@@ -691,4 +691,28 @@ p{ line-height:1.75; margin: 8px 0 0; }
   align-items: center;
   justify-content: center;
 }
+.topnav__actions{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* زرار الثيم شكله ثابت */
+.themeBtn{
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* الهمبرجر يظهر بس على الشاشات الصغيرة */
+@media(min-width: 861px){
+  .navToggle{ display: none; }
+}
+
+/* على الموبايل: الروابط تختفي وتظهر بالهمبرجر */
+@media(max-width: 860px){
+  .topnav__links{ display: none; }
+  .topnav__links.isOpen{ display: flex; }
+}
 
