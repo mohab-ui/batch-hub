@@ -1,6 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import ThemeScript from "./ThemeScript";
+import ThemeScript from "@/components/ThemeScript";
 
 export const metadata: Metadata = {
   title: "دفعتنا",

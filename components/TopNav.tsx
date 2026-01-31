@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { getMyProfile, isModerator, UserRole } from "@/lib/profile";
-import ThemeToggle from "@/app/ThemeToggle";
+import ThemeToggle from "@/components/ThemeToggle";
 
 function roleLabel(role: UserRole | null) {
   if (role === "admin") return "Admin";
@@ -45,7 +45,22 @@ export default function TopNav() {
           دفعتنا
         </Link>
 
-        {/* ✅ NAV: على الديسكتوب ظاهر عادي — وعلى الموبايل Dropdown */}
+        {/* ✅ Desktop actions (زرار الثيم ظاهر دايمًا على اللاب) */}
+        <div className="topnav__right">
+          <ThemeToggle />
+
+          {/* ✅ Hamburger يظهر موبايل فقط */}
+          <button
+            className="iconBtn navToggle"
+            onClick={() => setOpen((v) => !v)}
+            aria-label={open ? "إغلاق القائمة" : "فتح القائمة"}
+            aria-expanded={open}
+            type="button"
+          >
+            {open ? "✕" : "☰"}
+          </button>
+        </div>
+
         <nav className={`topnav__links ${open ? "isOpen" : ""}`}>
           <Link className="navLink" href="/dashboard" onClick={() => setOpen(false)}>
             المواد
@@ -68,11 +83,6 @@ export default function TopNav() {
             </>
           ) : null}
 
-          {/* ✅ زرار الثيم يظهر جنب اللينكات على اللاب */}
-          <span className="themeDesktop">
-            <ThemeToggle />
-          </span>
-
           <span className="chip" title="الدور الحالي">
             👤 {roleLabel(role)}
           </span>
@@ -81,23 +91,6 @@ export default function TopNav() {
             تسجيل خروج
           </button>
         </nav>
-
-        {/* ✅ Actions: على الموبايل الزرار يظهر برا الهمبرجر */}
-        <div className="topnav__actions">
-          <span className="themeMobile">
-            <ThemeToggle />
-          </span>
-
-          <button
-            className="iconBtn navToggle"
-            onClick={() => setOpen((v) => !v)}
-            aria-label={open ? "إغلاق القائمة" : "فتح القائمة"}
-            aria-expanded={open}
-            type="button"
-          >
-            {open ? "✕" : "☰"}
-          </button>
-        </div>
       </div>
     </header>
   );
