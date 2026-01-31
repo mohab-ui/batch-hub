@@ -685,3 +685,10 @@ p{ line-height:1.75; margin: 8px 0 0; }
 @media(max-width: 560px){
   .mcqNavGrid{ grid-template-columns: repeat(6, 1fr); }
 }
+.themeBtn{
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+

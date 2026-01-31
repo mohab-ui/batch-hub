@@ -2,14 +2,15 @@ export default function ThemeScript() {
   const code = `
   (function () {
     try {
-      var stored = localStorage.getItem('theme'); // 'light' | 'dark' | 'system'
-      var theme = stored || 'system';
-      var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-      var isDark = theme === 'dark' || (theme === 'system' && prefersDark);
-      document.documentElement.classList.toggle('dark', isDark);
-      document.documentElement.dataset.theme = theme;
+      var saved = localStorage.getItem("theme");
+      var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      var isDark = saved ? saved === "dark" : prefersDark;
+
+      if (isDark) document.documentElement.classList.add("dark");
+      else document.documentElement.classList.remove("dark");
     } catch (e) {}
   })();
   `;
+
   return <script dangerouslySetInnerHTML={{ __html: code }} />;
 }

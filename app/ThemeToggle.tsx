@@ -2,54 +2,34 @@
 
 import { useEffect, useState } from "react";
 
-type Theme = "light" | "dark" | "system";
-
-function applyTheme(theme: Theme) {
-  const prefersDark =
-    typeof window !== "undefined" &&
-    window.matchMedia &&
-    window.matchMedia("(prefers-color-scheme: dark)").matches;
-
-  const isDark = theme === "dark" || (theme === "system" && prefersDark);
-  document.documentElement.classList.toggle("dark", isDark);
-  document.documentElement.dataset.theme = theme;
-
-  try {
-    localStorage.setItem("theme", theme);
-  } catch {}
-}
-
 export default function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>("system");
+  const [mounted, setMounted] = useState(false);
+  const [dark, setDark] = useState(false);
 
   useEffect(() => {
-    const stored = (localStorage.getItem("theme") as Theme) || "system";
-    setTheme(stored);
-
-    const mq = window.matchMedia?.("(prefers-color-scheme: dark)");
-    const onChange = () => {
-      const current = (document.documentElement.dataset.theme as Theme) || stored;
-      if (current === "system") applyTheme("system");
-    };
-    mq?.addEventListener?.("change", onChange);
-    return () => mq?.removeEventListener?.("change", onChange);
+    setMounted(true);
+    setDark(document.documentElement.classList.contains("dark"));
   }, []);
 
-  function cycle() {
-    const next: Theme = theme === "system" ? "light" : theme === "light" ? "dark" : "system";
-    setTheme(next);
-    applyTheme(next);
+  function toggle() {
+    const next = !document.documentElement.classList.contains("dark");
+    document.documentElement.classList.toggle("dark", next);
+    localStorage.setItem("theme", next ? "dark" : "light");
+    setDark(next);
   }
 
-  const label = theme === "system" ? "System" : theme === "light" ? "Light" : "Dark";
-  const icon = theme === "dark" ? "🌙" : theme === "light" ? "☀️" : "🖥️";
+  // عشان ميبقاش فيه hydration mismatch
+  if (!mounted) return null;
 
   return (
-    <button className="btn btn--ghost" onClick={cycle} title="Theme">
-      <span style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
-        <span aria-hidden>{icon}</span>
-        <span style={{ fontSize: 13 }}>{label}</span>
-      </span>
+    <button
+      type="button"
+      className="iconBtn themeBtn"
+      onClick={toggle}
+      aria-label={dark ? "الوضع الفاتح" : "الوضع الداكن"}
+      title={dark ? "الوضع الفاتح" : "الوضع الداكن"}
+    >
+      {dark ? "☀️" : "🌙"}
     </button>
   );
 }

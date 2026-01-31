@@ -45,39 +45,53 @@ export default function TopNav() {
           دفعتنا
         </Link>
 
-        {/* ✅ هنا خليت زرار الثيم + زرار المنيو في الهيدر نفسه (يظهر على اللاب والموبايل) */}
-        <div className="topnav__actions">
-          <ThemeToggle />
-          <button
-            className="iconBtn navToggle"
-            onClick={() => setOpen((v) => !v)}
-            aria-label={open ? "إغلاق القائمة" : "فتح القائمة"}
-            aria-expanded={open}
-          >
-            {open ? "✕" : "☰"}
-          </button>
-        </div>
+        <button
+          className="iconBtn navToggle"
+          onClick={() => setOpen((v) => !v)}
+          aria-label={open ? "إغلاق القائمة" : "فتح القائمة"}
+          aria-expanded={open}
+          type="button"
+        >
+          {open ? "✕" : "☰"}
+        </button>
 
         <nav
           className={`topnav__links ${open ? "isOpen" : ""}`}
-          onClick={() => setOpen(false)}
+          onClick={(e) => {
+            // نقفل القائمة في الموبايل بس لو ضغط على لينك
+            const t = e.target as HTMLElement;
+            if (t.closest("a")) setOpen(false);
+          }}
         >
-          <Link className="navLink" href="/dashboard">المواد</Link>
-          <Link className="navLink" href="/mcq">اختبارات MCQ</Link>
+          <Link className="navLink" href="/dashboard">
+            المواد
+          </Link>
+          <Link className="navLink" href="/mcq">
+            اختبارات MCQ
+          </Link>
 
           {canManage ? (
             <>
-              <Link className="navLink" href="/upload">رفع محتوى</Link>
-              <Link className="navLink" href="/admin/courses">إدارة المواد</Link>
-              <Link className="navLink" href="/admin/mcq">إدارة الأسئلة</Link>
+              <Link className="navLink" href="/upload">
+                رفع محتوى
+              </Link>
+              <Link className="navLink" href="/admin/courses">
+                إدارة المواد
+              </Link>
+              <Link className="navLink" href="/admin/mcq">
+                إدارة الأسئلة
+              </Link>
             </>
           ) : null}
+
+          {/* ✅ زرار الثيم هنا جنبهم */}
+          <ThemeToggle />
 
           <span className="chip" title="الدور الحالي">
             👤 {roleLabel(role)}
           </span>
 
-          <button className="btn btn--ghost" onClick={logout}>
+          <button className="btn btn--ghost" onClick={logout} type="button">
             تسجيل خروج
           </button>
         </nav>
