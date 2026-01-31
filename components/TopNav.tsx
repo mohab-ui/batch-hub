@@ -45,22 +45,7 @@ export default function TopNav() {
           دفعتنا
         </Link>
 
-        {/* ✅ Actions: برا الهمبرجر (تظهر على اللاب والموبايل) */}
-        <div className="topnav__actions">
-          <ThemeToggle />
-
-          <button
-            className="iconBtn navToggle"
-            onClick={() => setOpen((v) => !v)}
-            aria-label={open ? "إغلاق القائمة" : "فتح القائمة"}
-            aria-expanded={open}
-            type="button"
-          >
-            {open ? "✕" : "☰"}
-          </button>
-        </div>
-
-        {/* ✅ الروابط نفسها */}
+        {/* ✅ NAV: على الديسكتوب ظاهر عادي — وعلى الموبايل Dropdown */}
         <nav className={`topnav__links ${open ? "isOpen" : ""}`}>
           <Link className="navLink" href="/dashboard" onClick={() => setOpen(false)}>
             المواد
@@ -83,6 +68,11 @@ export default function TopNav() {
             </>
           ) : null}
 
+          {/* ✅ زرار الثيم يظهر جنب اللينكات على اللاب */}
+          <span className="themeDesktop">
+            <ThemeToggle />
+          </span>
+
           <span className="chip" title="الدور الحالي">
             👤 {roleLabel(role)}
           </span>
@@ -91,6 +81,23 @@ export default function TopNav() {
             تسجيل خروج
           </button>
         </nav>
+
+        {/* ✅ Actions: على الموبايل الزرار يظهر برا الهمبرجر */}
+        <div className="topnav__actions">
+          <span className="themeMobile">
+            <ThemeToggle />
+          </span>
+
+          <button
+            className="iconBtn navToggle"
+            onClick={() => setOpen((v) => !v)}
+            aria-label={open ? "إغلاق القائمة" : "فتح القائمة"}
+            aria-expanded={open}
+            type="button"
+          >
+            {open ? "✕" : "☰"}
+          </button>
+        </div>
       </div>
     </header>
   );

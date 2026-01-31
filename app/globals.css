@@ -715,4 +715,72 @@ p{ line-height:1.75; margin: 8px 0 0; }
   .topnav__links{ display: none; }
   .topnav__links.isOpen{ display: flex; }
 }
+/* ===== Theme toggle placement (Desktop vs Mobile) ===== */
+
+.topnav__inner{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  min-height:64px;
+  flex-wrap: nowrap;
+}
+
+.topnav__links{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+.topnav__actions{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex: 0 0 auto;
+}
+
+.themeDesktop{ display:inline-flex; }
+.themeMobile{ display:none; }
+
+/* الزرار نفسه */
+.themeBtn{
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Desktop: مفيش همبرجر */
+@media(min-width: 861px){
+  .navToggle{ display:none; }
+}
+
+/* Mobile: اللينكات تبقى Dropdown + الزرار يبقى في الهيدر */
+@media(max-width: 860px){
+  .themeDesktop{ display:none; }
+  .themeMobile{ display:inline-flex; }
+
+  .topnav__links{
+    display:none;
+    position:absolute;
+    left: 12px;
+    right: 12px;
+    top: 70px;
+    padding: 12px;
+    gap: 10px;
+    flex-direction: column;
+    align-items: stretch;
+    background: rgba(7, 13, 24, .92);
+    border: 1px solid rgba(31,42,68,.9);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    z-index: 60;
+  }
+
+  .topnav__links.isOpen{ display:flex; }
+
+  .topnav__inner{ position:relative; }
+  .navLink{ justify-content:flex-start; }
+}
 
