@@ -31,7 +31,6 @@ export default function AdminMcqImportPage() {
   const [info, setInfo] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // ✅ تحميل البروفايل/الصلاحيات (بدون early return قبل hooks)
   useEffect(() => {
     let mounted = true;
 
@@ -53,51 +52,49 @@ export default function AdminMcqImportPage() {
 
   const canManage = useMemo(() => isModerator(role as any), [role]);
 
-  // ✅ تحميل المواد (يشتغل فقط لو مسموح + انتهينا من loadingRole)
+  // Load dropdown data only after we know permissions
   useEffect(() => {
-    let mounted = true;
-
     async function loadCourses() {
       const { data, error } = await supabase
         .from("courses")
         .select("id, code, name")
         .order("code", { ascending: true });
 
-      if (!mounted) return;
       if (!error) setCourses((data ?? []) as Course[]);
     }
 
     if (!loadingRole && canManage) loadCourses();
-
-    return () => {
-      mounted = false;
-    };
   }, [loadingRole, canManage]);
 
-  // ✅ تحميل المحاضرات عند تغيير المادة (فقط لو مسموح)
   useEffect(() => {
-    let mounted = true;
-
     async function loadLectures() {
       setLectures([]);
       if (!courseId) return;
-
       const { data, error } = await supabase
         .from("lectures")
         .select("id, title, order_index")
         .eq("course_id", courseId)
         .order("order_index", { ascending: true });
 
-      if (!mounted) return;
       if (!error) setLectures((data ?? []) as Lecture[]);
     }
 
     if (!loadingRole && canManage) loadLectures();
-
-    return () => {
-      mounted = false;
-    };
   }, [courseId, loadingRole, canManage]);
+
+  if (loadingRole) {
+    return (
+      <AuthGuard>
+        <TopNav />
+        <main className="container">
+          <div className="card">
+            <h1>جاري التحميل…</h1>
+            <p className="muted">بنحدد صلاحيات الحساب.</p>
+          </div>
+        </main>
+      </AuthGuard>
+    );
+  }
 
   function parse() {
     setErr(null);
@@ -116,10 +113,7 @@ export default function AdminMcqImportPage() {
 
     const merged: Draft[] = list.map((q) => ({
       ...q,
-      correctIndex:
-        typeof q.detectedCorrect === "number" && q.detectedCorrect >= 0
-          ? q.detectedCorrect
-          : null,
+      correctIndex: typeof q.detectedCorrect === "number" && q.detectedCorrect >= 0 ? q.detectedCorrect : null,
       explanation: "",
     }));
 
@@ -149,7 +143,8 @@ export default function AdminMcqImportPage() {
       return;
     }
 
-    const bad = drafts.find((d) => d.correctIndex === null || (d.correctIndex ?? -1) < 0);
+    // Validate
+    const bad = drafts.find((d) => d.correctIndex === null || d.correctIndex === undefined || d.correctIndex < 0);
     if (bad) {
       setErr("في أسئلة لسه ما اخترتش الإجابة الصحيحة بتاعتها. اختار A/B/C/D لكل سؤال.");
       return;
@@ -185,21 +180,6 @@ export default function AdminMcqImportPage() {
     } finally {
       setSaving(false);
     }
-  }
-
-  // ✅ بعد كل الـ hooks: عرض الحالات
-  if (loadingRole) {
-    return (
-      <AuthGuard>
-        <TopNav />
-        <main className="container">
-          <div className="card">
-            <h1>جاري التحميل…</h1>
-            <p className="muted">بنحدد صلاحيات الحساب.</p>
-          </div>
-        </main>
-      </AuthGuard>
-    );
   }
 
   if (!canManage) {
@@ -238,11 +218,7 @@ export default function AdminMcqImportPage() {
           <div className="grid" style={{ marginTop: 12 }}>
             <div className="col-12 col-6">
               <label className="label">المادة</label>
-              <select
-                className="select"
-                value={courseId}
-                onChange={(e) => { setCourseId(e.target.value); setLectureId(""); }}
-              >
+              <select className="select" value={courseId} onChange={(e) => { setCourseId(e.target.value); setLectureId(""); }}>
                 <option value="">اختر مادة…</option>
                 {courses.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -254,12 +230,7 @@ export default function AdminMcqImportPage() {
 
             <div className="col-12 col-6">
               <label className="label">المحاضرة (اختياري)</label>
-              <select
-                className="select"
-                value={lectureId || ""}
-                onChange={(e) => setLectureId(e.target.value)}
-                disabled={!courseId}
-              >
+              <select className="select" value={lectureId || ""} onChange={(e) => setLectureId(e.target.value)} disabled={!courseId}>
                 <option value="">(عام للمادة)</option>
                 {lectures.map((l) => (
                   <option key={l.id} value={l.id}>
@@ -285,10 +256,7 @@ export default function AdminMcqImportPage() {
             <button className="btn" onClick={parse}>
               تحويل النص لأسئلة
             </button>
-            <button
-              className="btn btn--ghost"
-              onClick={() => { setDrafts([]); setInfo(null); setErr(null); }}
-            >
+            <button className="btn btn--ghost" onClick={() => { setDrafts([]); setInfo(null); setErr(null); }}>
               مسح الـ Preview
             </button>
             <button className="btn" onClick={saveAll} disabled={saving || drafts.length === 0}>
@@ -323,15 +291,7 @@ export default function AdminMcqImportPage() {
                   <div className="sectionHeader">
                     <div className="sectionTitle" style={{ minWidth: 0 }}>
                       <h3 style={{ marginBottom: 6 }}>
-                        سؤال {qi + 1}{" "}
-                        {d.needsReview ? (
-                          <span
-                            className="pill"
-                            style={{ borderColor: "rgba(255,106,106,.7)", color: "rgba(255,106,106,.95)" }}
-                          >
-                            Review
-                          </span>
-                        ) : null}
+                        سؤال {qi + 1} {d.needsReview ? <span className="pill" style={{ borderColor: "rgba(255,106,106,.7)", color: "rgba(255,106,106,.95)" }}>Review</span> : null}
                       </h3>
                       <div className="muted" style={{ whiteSpace: "pre-wrap" }}>{d.question}</div>
                     </div>

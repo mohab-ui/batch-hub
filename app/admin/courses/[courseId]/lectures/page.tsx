@@ -358,7 +358,7 @@ export default function AdminLecturesPage() {
 
               <h2>إنشاء تلقائي</h2>
               <p className="muted" style={{ marginTop: 0 }}>
-                ينشئ محاضرات "محاضرة 1" إلى "محاضرة N" (بدون ما يكرر الموجود).
+                ينشئ محاضرات &quot;محاضرة 1&quot; إلى &quot;محاضرة N&quot; (بدون ما يكرر الموجود).
               </p>
 
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 10 }}>
@@ -497,7 +497,7 @@ export default function AdminLecturesPage() {
               </div>
 
               <p className="muted" style={{ marginTop: 12 }}>
-                نصيحة: خلي الترتيب 1..N علشان يسهل على الدفعة. وتقدر تضيف محاضرة "عام" بالترتيب 0 للملفات العامة.
+                نصيحة: خلي الترتيب 1..N علشان يسهل على الدفعة. وتقدر تضيف محاضرة &quot;عام&quot; بالترتيب 0 للملفات العامة.
               </p>
             </div>
           </div>
