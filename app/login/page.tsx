@@ -116,8 +116,7 @@ export default function LoginPage() {
       </div>
 
       <p className="muted" style={{ marginTop: 12 }}>
-        نصيحة: لو عايز تمنع أي حد من برة الدفعة يعمل حساب، فعّل قيود الإيميل
-        (Domain allowlist) من إعدادات Auth في Supabase.
+        نصيحة: لو لسه أول مره اعمل إنشاء حساب 
       </p>
     </main>
   );
