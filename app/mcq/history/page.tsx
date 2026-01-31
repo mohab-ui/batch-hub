@@ -19,16 +19,8 @@ type Row = {
   score: number;
   started_at: string;
   submitted_at: string | null;
-
-  // ✅ هنا Object واحد مش Array
   course: Course | null;
   lecture: Lecture | null;
-};
-
-// Supabase بيرجعهم Array بسبب join
-type RawRow = Omit<Row, "course" | "lecture"> & {
-  course: Course[] | null;
-  lecture: Lecture[] | null;
 };
 
 function fmtDate(s?: string | null) {
@@ -93,11 +85,20 @@ export default function McqHistoryPage() {
         return;
       }
 
-      // ✅ تحويل Arrays -> Objects
-      const normalized: Row[] = ((data ?? []) as RawRow[]).map((r) => ({
-        ...r,
-        course: Array.isArray(r.course) ? r.course[0] ?? null : null,
-        lecture: Array.isArray(r.lecture) ? r.lecture[0] ?? null : null,
+      // 🛠️ التعديل هنا: استخدام (any) عشان نمنع أخطاء الـ Build
+      const rawData = (data ?? []) as any[];
+
+      const normalized: Row[] = rawData.map((r) => ({
+        id: r.id,
+        mode: r.mode,
+        total_questions: r.total_questions,
+        correct_count: r.correct_count,
+        score: r.score,
+        started_at: r.started_at,
+        submitted_at: r.submitted_at,
+        // نتأكد إنها لو راجعة مصفوفة ناخد أول عنصر، ولو كائن ناخده زي ما هو
+        course: Array.isArray(r.course) ? r.course[0] ?? null : r.course,
+        lecture: Array.isArray(r.lecture) ? r.lecture[0] ?? null : r.lecture,
       }));
 
       setRows(normalized);
