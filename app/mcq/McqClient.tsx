@@ -1,12 +1,12 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import AuthGuard from "@/components/AuthGuard";
 import TopNav from "@/components/TopNav";
 import { supabase } from "@/lib/supabase";
+
+export const dynamic = "force-dynamic";
 
 type Course = { id: string; code: string; name: string };
 type Lecture = { id: string; title: string; order_index: number };
@@ -35,7 +35,7 @@ export default function McqPage() {
   const [courseId, setCourseId] = useState<string>(sp.get("course") ?? "");
   const [lectureId, setLectureId] = useState<string>(sp.get("lecture") ?? "");
   const [mode, setMode] = useState<"practice" | "exam">(
-    (sp.get("mode") as any) === "exam" ? "exam" : "practice"
+    sp.get("mode") === "exam" ? "exam" : "practice"
   );
 
   const [loading, setLoading] = useState(false);
@@ -46,18 +46,20 @@ export default function McqPage() {
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [submitted, setSubmitted] = useState(false);
 
-  const [quizId, setQuizId] = useState<string | null>(null);
+  // ✅ جديد: في التدريب نكشف نتيجة كل سؤال بمجرد اختيار الإجابة
+  const [revealed, setRevealed] = useState<Record<string, boolean>>({});
+
+  // ✅ وقت بداية المحاولة
+  const [startedAt, setStartedAt] = useState<string | null>(null);
 
   const current = questions[idx];
 
   useEffect(() => {
     async function loadCourses() {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("courses")
         .select("id, code, name")
         .order("code", { ascending: true });
-
-      if (error) return;
       setCourses((data ?? []) as Course[]);
     }
     loadCourses();
@@ -68,13 +70,12 @@ export default function McqPage() {
       setLectures([]);
       if (!courseId) return;
 
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("lectures")
         .select("id, title, order_index")
         .eq("course_id", courseId)
         .order("order_index", { ascending: true });
 
-      if (error) return;
       setLectures((data ?? []) as Lecture[]);
     }
     loadLectures();
@@ -85,19 +86,18 @@ export default function McqPage() {
   async function start() {
     setErr(null);
     setLoading(true);
+
+    // reset attempt state
     setSubmitted(false);
     setIdx(0);
     setAnswers({});
     setQuestions([]);
-    setQuizId(null);
+    setRevealed({});
+
+    const startIso = new Date().toISOString();
+    setStartedAt(startIso);
 
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        setErr("لازم تسجل دخول الأول.");
-        return;
-      }
-
       if (!courseId) {
         setErr("اختار المادة الأول.");
         return;
@@ -105,7 +105,9 @@ export default function McqPage() {
 
       let q = supabase
         .from("mcq_questions")
-        .select("id, question_text, choices, correct_index, explanation, course_id, lecture_id")
+        .select(
+          "id, question_text, choices, correct_index, explanation, course_id, lecture_id"
+        )
         .eq("course_id", courseId);
 
       if (lectureId) q = q.eq("lecture_id", lectureId);
@@ -125,46 +127,6 @@ export default function McqPage() {
 
       list.sort(() => Math.random() - 0.5);
 
-      // ✅ 1) Create quiz attempt in mcq_quizzes
-      const { data: insertedQuiz, error: insQuizErr } = await supabase
-        .from("mcq_quizzes")
-        .insert([
-          {
-            user_id: userData.user.id,
-            course_id: courseId,
-            lecture_id: lectureId ? lectureId : null,
-            mode,
-            total_questions: list.length,
-            correct_count: 0,
-            score: 0,
-            started_at: new Date().toISOString(),
-            submitted_at: null,
-          },
-        ])
-        .select("id")
-        .single();
-
-      if (insQuizErr || !insertedQuiz?.id) {
-        setErr("فشل إنشاء محاولة (mcq_quizzes). غالبًا RLS مانع الطالب.");
-        return;
-      }
-
-      const newQuizId = insertedQuiz.id as string;
-      setQuizId(newQuizId);
-
-      // ✅ 2) Save quiz questions order
-      const quizQs = list.map((qq, i) => ({
-        quiz_id: newQuizId,
-        question_id: qq.id,
-        order_index: i,
-      }));
-
-      const { error: insQQErr } = await supabase.from("mcq_quiz_questions").insert(quizQs);
-      if (insQQErr) {
-        setErr("فشل حفظ ترتيب الأسئلة (mcq_quiz_questions).");
-        return;
-      }
-
       setQuestions(list);
 
       const params = new URLSearchParams();
@@ -179,16 +141,23 @@ export default function McqPage() {
 
   function choose(choiceIndex: number) {
     if (!current) return;
+    if (submitted) return;
+
     setAnswers((p) => ({ ...p, [current.id]: choiceIndex }));
+
+    // ✅ في التدريب: اول ما يختار، نكشف الصح/الغلط فوراً
+    if (mode === "practice") {
+      setRevealed((p) => ({ ...p, [current.id]: true }));
+    }
+  }
+
+  function isRevealedFor(qid: string) {
+    return submitted || (mode === "practice" && !!revealed[qid]);
   }
 
   async function submit() {
     setErr(null);
-
-    if (!questions.length || !quizId) {
-      setErr("ابدأ اختبار الأول.");
-      return;
-    }
+    if (!questions.length) return;
 
     const unanswered = questions.filter((q) => answers[q.id] === undefined).length;
     if (unanswered > 0) {
@@ -201,36 +170,58 @@ export default function McqPage() {
 
     setSubmitted(true);
 
-    // ✅ Save answers
-    const now = new Date().toISOString();
-    const rows = questions.map((q) => ({
-      quiz_id: quizId,
-      question_id: q.id,
-      selected_index: answers[q.id],
-      is_correct: answers[q.id] === q.correct_index,
-      answered_at: now,
-    }));
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return;
 
-    const { error: ansErr } = await supabase.from("mcq_quiz_answers").insert(rows);
-    if (ansErr) {
-      setErr("فشل حفظ الإجابات (mcq_quiz_answers). غالبًا RLS.");
-      return;
-    }
+      // ✅ 1) حفظ المحاولة في جدول mcq_quizzes (ده اللي عندك في Supabase)
+      const { data: quizRow, error: quizErr } = await supabase
+        .from("mcq_quizzes")
+        .insert([
+          {
+            user_id: userData.user.id,
+            course_id: courseId,
+            lecture_id: lectureId ? lectureId : null,
+            mode,
+            total_questions: questions.length,
+            correct_count: correct,
+            score,
+            started_at: startedAt ?? new Date().toISOString(),
+            submitted_at: new Date().toISOString(),
+          },
+        ])
+        .select("id")
+        .single();
 
-    // ✅ Update quiz summary
-    const { error: updErr } = await supabase
-      .from("mcq_quizzes")
-      .update({
-        total_questions: questions.length,
-        correct_count: correct,
-        score,
-        submitted_at: now,
-      })
-      .eq("id", quizId);
+      if (quizErr || !quizRow?.id) return;
 
-    if (updErr) {
-      setErr("فشل تحديث نتيجة المحاولة (mcq_quizzes).");
-      return;
+      const quizId = quizRow.id as string;
+
+      // ✅ 2) حفظ ترتيب الأسئلة
+      const quizQuestionsPayload = questions.map((q, i) => ({
+        quiz_id: quizId,
+        question_id: q.id,
+        order_index: i,
+      }));
+
+      await supabase.from("mcq_quiz_questions").insert(quizQuestionsPayload);
+
+      // ✅ 3) حفظ إجابات الطالب
+      const now = new Date().toISOString();
+      const quizAnswersPayload = questions.map((q) => {
+        const selected = answers[q.id];
+        return {
+          quiz_id: quizId,
+          question_id: q.id,
+          selected_index: selected,
+          is_correct: selected === q.correct_index,
+          answered_at: now,
+        };
+      });
+
+      await supabase.from("mcq_quiz_answers").insert(quizAnswersPayload);
+    } catch {
+      // ignore
     }
   }
 
@@ -328,10 +319,14 @@ export default function McqPage() {
               <div className="sectionTitle" style={{ minWidth: 0 }}>
                 <div className="rowTitle">
                   سؤال {progress}
-                  {submitted ? <span className="pill" style={{ marginInlineStart: 10 }}>تم التسليم</span> : null}
+                  {submitted ? (
+                    <span className="pill" style={{ marginInlineStart: 10 }}>
+                      تم التسليم
+                    </span>
+                  ) : null}
                 </div>
                 <div className="muted" style={{ fontSize: 13 }}>
-                  صحيح حتى الآن: {correctCount} / {questions.length}
+                : {correctCount} / {questions.length}
                 </div>
               </div>
 
@@ -351,17 +346,20 @@ export default function McqPage() {
               {current?.choices?.map((c, ci) => {
                 const selected = answers[current.id] === ci;
                 const isCorrect = ci === current.correct_index;
+                const revealedNow = current ? isRevealedFor(current.id) : false;
 
-                const showCorrect = submitted && mode === "practice";
+                const showMarks = revealedNow; // ✅ التدريب: بعد الاختيار، الامتحان: بعد submit
                 const cls = [
                   "mcqOption",
                   selected ? "mcqOption--selected" : "",
-                  showCorrect && isCorrect ? "mcqOption--correct" : "",
-                  showCorrect && selected && !isCorrect ? "mcqOption--wrong" : "",
-                ].filter(Boolean).join(" ");
+                  showMarks && isCorrect ? "mcqOption--correct" : "",
+                  showMarks && selected && !isCorrect ? "mcqOption--wrong" : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ");
 
                 return (
-                  <button key={ci} className={cls} onClick={() => !submitted && choose(ci)}>
+                  <button key={ci} className={cls} onClick={() => choose(ci)} disabled={submitted}>
                     <span className="mcqOption__letter">{letterFromIndex(ci)}</span>
                     <span className="mcqOption__text">{c}</span>
                   </button>
@@ -369,13 +367,35 @@ export default function McqPage() {
               })}
             </div>
 
+            {/* ✅ في التدريب: بعد ما يختار يظهر التفسير فوراً */}
+            {current && mode === "practice" && isRevealedFor(current.id) ? (
+              <div style={{ marginTop: 12 }} className="card card--soft">
+                <div className="rowTitle" style={{ fontWeight: 700 }}>
+                  {answers[current.id] === current.correct_index ? "✅ إجابة صحيحة" : "❌ إجابة خاطئة"}
+                </div>
+                {current.explanation ? (
+                  <p className="muted" style={{ marginTop: 8, whiteSpace: "pre-wrap" }}>
+                    {current.explanation}
+                  </p>
+                ) : (
+                  <p className="muted" style={{ marginTop: 8 }}>
+                    (لا يوجد تفسير)
+                  </p>
+                )}
+              </div>
+            ) : null}
+
             <div className="divider" />
 
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <button className="btn btn--ghost" onClick={() => setIdx((p) => Math.max(0, p - 1))} disabled={idx === 0}>
                 السابق
               </button>
-              <button className="btn btn--ghost" onClick={() => setIdx((p) => Math.min(questions.length - 1, p + 1))} disabled={idx >= questions.length - 1}>
+              <button
+                className="btn btn--ghost"
+                onClick={() => setIdx((p) => Math.min(questions.length - 1, p + 1))}
+                disabled={idx >= questions.length - 1}
+              >
                 التالي
               </button>
 
