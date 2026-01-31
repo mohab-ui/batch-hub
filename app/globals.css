@@ -3,6 +3,7 @@
   الهدف: وضوح عالي (contrast) + شكل نضيف + تجربة كويسة على الموبايل.
 */
 :root{
+  /* Dark theme (default when .dark exists) */
   --bg: #0b1220;
   --bg2:#070d18;
   --panel:#121a2a;
@@ -23,10 +24,30 @@
   --container: min(1120px, calc(100% - 32px));
 }
 
+/* Light theme (active when .dark is NOT present) */
+:root:not(.dark){
+  --bg: #f7f8fb;
+  --bg2:#eef2f8;
+  --panel:#ffffff;
+  --panel2:#f7f9ff;
+  --border:#d9e2f2;
+  --text:#0b1220;
+  --muted:#475569;
+
+  --accent:#2563eb;
+  --accent2:#38bdf8;
+
+  --danger:#dc2626;
+  --success:#16a34a;
+
+  --shadow: 0 16px 42px rgba(2,6,23,.10);
+  --shadow-soft: 0 10px 24px rgba(2,6,23,.08);
+}
+
 *{ box-sizing:border-box; }
 
 html{
-  color-scheme: dark;
+  color-scheme: light dark;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -47,9 +68,10 @@ html,body{
   margin:0;
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
     "Noto Sans Arabic","Noto Sans", Arial, "Apple Color Emoji","Segoe UI Emoji";
-  background: radial-gradient(1200px 600px at 20% -20%, rgba(106,169,255,.25), transparent 70%),
-              radial-gradient(900px 500px at 110% 10%, rgba(141,214,255,.18), transparent 65%),
-              linear-gradient(180deg, var(--bg), var(--bg2));
+  background:
+    radial-gradient(1200px 600px at 20% -20%, rgba(106,169,255,.18), transparent 70%),
+    radial-gradient(900px 500px at 110% 10%, rgba(141,214,255,.14), transparent 65%),
+    linear-gradient(180deg, var(--bg), var(--bg2));
   color:var(--text);
 }
 
@@ -76,9 +98,9 @@ a{ color:inherit; text-decoration:none; }
   position: sticky;
   top:0;
   z-index:50;
-  background: rgba(7, 13, 24, .65);
+  background: color-mix(in srgb, var(--panel) 75%, transparent);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(31,42,68,.8);
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
 }
 
 .topnav__inner{
@@ -118,8 +140,8 @@ a{ color:inherit; text-decoration:none; }
   justify-content:center;
   padding: 8px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(31,42,68,.75);
-  background: rgba(7, 13, 24, .35);
+  border: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
+  background: color-mix(in srgb, var(--panel2) 65%, transparent);
   color: var(--text);
   font-weight: 800;
   transition: transform .08s ease, filter .12s ease, background .12s ease, border-color .12s ease;
@@ -145,8 +167,8 @@ a{ color:inherit; text-decoration:none; }
     gap: 10px;
     flex-direction: column;
     align-items: stretch;
-    background: rgba(7, 13, 24, .92);
-    border: 1px solid rgba(31,42,68,.9);
+    background: color-mix(in srgb, var(--panel) 92%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
   }
@@ -159,8 +181,8 @@ a{ color:inherit; text-decoration:none; }
 }
 
 .card{
-  border: 1px solid rgba(31,42,68,.85);
-  background: linear-gradient(180deg, rgba(18,26,42,.92), rgba(15,23,41,.92));
+  border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
   border-radius: var(--radius);
   padding: 16px;
   box-shadow: var(--shadow);
@@ -182,7 +204,7 @@ a{ color:inherit; text-decoration:none; }
 
 .card--soft{
   box-shadow: none;
-  background: rgba(18,26,42,.65);
+  background: color-mix(in srgb, var(--panel2) 70%, transparent);
 }
 
 @media(max-width: 560px){
@@ -203,7 +225,7 @@ a{ color:inherit; text-decoration:none; }
 }
 
 .btn{
-  border: 1px solid rgba(31,42,68,.9);
+  border: 1px solid color-mix(in srgb, var(--border) 90%, transparent);
   background: linear-gradient(135deg, var(--accent), var(--accent2));
   color:#061024;
   border-radius: 12px;
@@ -218,7 +240,7 @@ a{ color:inherit; text-decoration:none; }
 .btn:disabled{ opacity:.55; cursor:not-allowed; transform:none; }
 
 .btn--ghost{
-  background: rgba(7, 13, 24, .35);
+  background: color-mix(in srgb, var(--panel2) 65%, transparent);
   color: var(--text);
 }
 
@@ -229,12 +251,12 @@ a{ color:inherit; text-decoration:none; }
 .btn--danger{
   background: transparent;
   color: var(--danger);
-  border-color: rgba(255,106,106,.55);
+  border-color: color-mix(in srgb, var(--danger) 55%, transparent);
 }
 
 .iconBtn{
-  border: 1px solid rgba(31,42,68,.9);
-  background: rgba(15,23,41,.8);
+  border: 1px solid color-mix(in srgb, var(--border) 90%, transparent);
+  background: color-mix(in srgb, var(--panel2) 80%, transparent);
   color: var(--text);
   border-radius: 12px;
   padding: 8px 10px;
@@ -248,8 +270,8 @@ a{ color:inherit; text-decoration:none; }
   width:100%;
   padding: 10px 12px;
   border-radius: 12px;
-  border: 1px solid rgba(31,42,68,.9);
-  background: rgba(15,23,41,.92);
+  border: 1px solid color-mix(in srgb, var(--border) 90%, transparent);
+  background: color-mix(in srgb, var(--panel2) 92%, transparent);
   color: var(--text);
   outline:none;
 }
@@ -271,25 +293,25 @@ select option{ color: #0b1220; }
 
 .pill{
   display:inline-block;
-  border: 1px solid rgba(31,42,68,.85);
+  border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
   padding: 4px 10px;
   border-radius: 999px;
   font-size: 12px;
   color: var(--muted);
   margin-top:6px;
-  background: rgba(7, 13, 24, .3);
+  background: color-mix(in srgb, var(--panel2) 55%, transparent);
 }
 
 .chip{
   display:inline-flex;
   align-items:center;
   gap:6px;
-  border: 1px solid rgba(31,42,68,.85);
+  border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
   padding: 6px 10px;
   border-radius: 999px;
   font-size: 12px;
   color: var(--text);
-  background: rgba(7, 13, 24, .35);
+  background: color-mix(in srgb, var(--panel2) 55%, transparent);
 }
 
 .muted{ color: var(--muted); }
@@ -329,7 +351,7 @@ p{ line-height:1.75; margin: 8px 0 0; }
 
 .divider{
   height:1px;
-  background: rgba(31,42,68,.85);
+  background: color-mix(in srgb, var(--border) 85%, transparent);
   margin: 12px 0;
 }
 
@@ -358,9 +380,9 @@ p{ line-height:1.75; margin: 8px 0 0; }
 
   .sidebar .card::-webkit-scrollbar{ width: 10px; }
   .sidebar .card::-webkit-scrollbar-thumb{
-    background: rgba(31,42,68,.8);
+    background: color-mix(in srgb, var(--border) 80%, transparent);
     border-radius: 999px;
-    border: 2px solid rgba(7, 13, 24, .55);
+    border: 2px solid color-mix(in srgb, var(--panel2) 55%, transparent);
   }
 }
 
@@ -398,11 +420,11 @@ p{ line-height:1.75; margin: 8px 0 0; }
 
 .kpi{
   font-size:12px;
-  color: rgba(238,244,255,.88);
-  border: 1px solid rgba(31,42,68,.85);
+  color: color-mix(in srgb, var(--text) 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
   padding: 6px 10px;
   border-radius:999px;
-  background: rgba(7, 13, 24, .25);
+  background: color-mix(in srgb, var(--panel2) 45%, transparent);
   font-weight: 800;
 }
 
@@ -415,8 +437,8 @@ p{ line-height:1.75; margin: 8px 0 0; }
   gap: 10px;
   padding: 12px 12px;
   border-radius: var(--radius-sm);
-  border: 1px solid rgba(31,42,68,.85);
-  background: rgba(7, 13, 24, .28);
+  border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+  background: color-mix(in srgb, var(--panel2) 45%, transparent);
   cursor:pointer;
   color: var(--text);
   font-weight: 900;
@@ -424,15 +446,14 @@ p{ line-height:1.75; margin: 8px 0 0; }
 }
 
 .accordionBtn:hover{ filter: brightness(1.05); transform: translateY(-1px); border-color: rgba(106,169,255,.35); }
-
 .accordionBtn:active{ transform: translateY(0); }
 
 
 /* ===== Extra UI blocks (MCQ + Stats) ===== */
 
 .note{
-  border: 1px solid rgba(31,42,68,.85);
-  background: rgba(7, 13, 24, .22);
+  border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+  background: color-mix(in srgb, var(--panel2) 40%, transparent);
   border-radius: 14px;
   padding: 12px 12px;
 }
@@ -446,12 +467,12 @@ p{ line-height:1.75; margin: 8px 0 0; }
   line-height: 1.7;
 }
 .note--ok{
-  border-color: rgba(65,216,157,.55);
-  background: rgba(65,216,157,.08);
+  border-color: color-mix(in srgb, var(--success) 55%, transparent);
+  background: color-mix(in srgb, var(--success) 10%, transparent);
 }
 .note--bad{
-  border-color: rgba(255,106,106,.55);
-  background: rgba(255,106,106,.08);
+  border-color: color-mix(in srgb, var(--danger) 55%, transparent);
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
 }
 
 .rowItem{
@@ -461,8 +482,8 @@ p{ line-height:1.75; margin: 8px 0 0; }
   gap: 12px;
   padding: 12px;
   border-radius: 14px;
-  border: 1px solid rgba(31,42,68,.7);
-  background: rgba(7, 13, 24, .16);
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  background: color-mix(in srgb, var(--panel2) 35%, transparent);
 }
 .rowTitle{
   font-weight: 900;
@@ -472,8 +493,8 @@ p{ line-height:1.75; margin: 8px 0 0; }
 }
 
 .kpiCard{
-  border: 1px solid rgba(31,42,68,.85);
-  background: rgba(7, 13, 24, .18);
+  border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+  background: color-mix(in srgb, var(--panel2) 38%, transparent);
   border-radius: 14px;
   padding: 12px;
 }
@@ -493,8 +514,8 @@ p{ line-height:1.75; margin: 8px 0 0; }
   gap: 10px;
 }
 .miniStats__item{
-  border: 1px solid rgba(31,42,68,.75);
-  background: rgba(7, 13, 24, .14);
+  border: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
+  background: color-mix(in srgb, var(--panel2) 30%, transparent);
   border-radius: 14px;
   padding: 10px;
 }
@@ -522,8 +543,8 @@ p{ line-height:1.75; margin: 8px 0 0; }
 .mcqProgress{
   height: 10px;
   border-radius: 999px;
-  border: 1px solid rgba(31,42,68,.85);
-  background: rgba(7, 13, 24, .22);
+  border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+  background: color-mix(in srgb, var(--panel2) 35%, transparent);
   overflow: hidden;
 }
 .mcqProgress__bar{
@@ -536,8 +557,8 @@ p{ line-height:1.75; margin: 8px 0 0; }
   margin-top: 10px;
   padding: 12px;
   border-radius: 14px;
-  border: 1px solid rgba(31,42,68,.7);
-  background: rgba(7, 13, 24, .14);
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  background: color-mix(in srgb, var(--panel2) 30%, transparent);
   color: var(--text);
   line-height: 1.9;
   white-space: pre-wrap;
@@ -551,8 +572,8 @@ p{ line-height:1.75; margin: 8px 0 0; }
   gap: 10px;
   padding: 12px 12px;
   border-radius: 14px;
-  border: 1px solid rgba(31,42,68,.85);
-  background: rgba(7, 13, 24, .14);
+  border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+  background: color-mix(in srgb, var(--panel2) 30%, transparent);
   cursor:pointer;
   transition: transform .08s ease, background .12s ease, border-color .12s ease, filter .12s ease;
 }
@@ -570,8 +591,8 @@ p{ line-height:1.75; margin: 8px 0 0; }
   align-items:center;
   justify-content:center;
   font-weight: 950;
-  border: 1px solid rgba(31,42,68,.85);
-  background: rgba(18,26,42,.65);
+  border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+  background: color-mix(in srgb, var(--panel) 65%, transparent);
   flex-shrink: 0;
 }
 .mcqOption__text{
@@ -585,31 +606,31 @@ p{ line-height:1.75; margin: 8px 0 0; }
   background: rgba(106,169,255,.10);
 }
 .mcqOption--correct{
-  border-color: rgba(65,216,157,.8);
-  background: rgba(65,216,157,.10);
+  border-color: color-mix(in srgb, var(--success) 80%, transparent);
+  background: color-mix(in srgb, var(--success) 12%, transparent);
 }
 .mcqOption--wrong{
-  border-color: rgba(255,106,106,.8);
-  background: rgba(255,106,106,.08);
+  border-color: color-mix(in srgb, var(--danger) 80%, transparent);
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
 }
 
 .mcqTag{
-  border: 1px solid rgba(31,42,68,.85);
+  border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
   border-radius: 999px;
   padding: 4px 8px;
   font-size: 12px;
   color: var(--muted);
-  background: rgba(7, 13, 24, .25);
+  background: color-mix(in srgb, var(--panel2) 35%, transparent);
 }
 .mcqTag--ok{
-  border-color: rgba(65,216,157,.75);
-  color: rgba(65,216,157,.95);
-  background: rgba(65,216,157,.08);
+  border-color: color-mix(in srgb, var(--success) 75%, transparent);
+  color: color-mix(in srgb, var(--success) 95%, transparent);
+  background: color-mix(in srgb, var(--success) 10%, transparent);
 }
 .mcqTag--bad{
-  border-color: rgba(255,106,106,.75);
-  color: rgba(255,106,106,.95);
-  background: rgba(255,106,106,.08);
+  border-color: color-mix(in srgb, var(--danger) 75%, transparent);
+  color: color-mix(in srgb, var(--danger) 95%, transparent);
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
 }
 
 .mcqNavGrid{
@@ -618,15 +639,15 @@ p{ line-height:1.75; margin: 8px 0 0; }
   gap: 8px;
 }
 .mcqNavBtn{
-  border: 1px solid rgba(31,42,68,.85);
-  background: rgba(7, 13, 24, .18);
+  border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+  background: color-mix(in srgb, var(--panel2) 32%, transparent);
   border-radius: 12px;
   padding: 10px 0;
   font-weight: 950;
   cursor:pointer;
 }
 .mcqNavBtn--answered{
-  border-color: rgba(65,216,157,.55);
+  border-color: color-mix(in srgb, var(--success) 55%, transparent);
 }
 .mcqNavBtn--active{
   border-color: rgba(106,169,255,.85);
@@ -640,4 +661,3 @@ p{ line-height:1.75; margin: 8px 0 0; }
 @media(max-width: 560px){
   .mcqNavGrid{ grid-template-columns: repeat(6, 1fr); }
 }
-
