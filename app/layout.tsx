@@ -1,5 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
+import ThemeScript from "@/components/ThemeScript";
 
 export const metadata: Metadata = {
   title: "دفعتنا",
@@ -13,6 +14,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl">
+      <head>
+        <ThemeScript />
+      </head>
       <body>{children}</body>
     </html>
   );

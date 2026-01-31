@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { getMyProfile, isModerator, UserRole } from "@/lib/profile";
+import ThemeToggle from "@/components/ThemeToggle";
 
 function roleLabel(role: UserRole | null) {
   if (role === "admin") return "Admin";
@@ -53,19 +54,33 @@ export default function TopNav() {
           {open ? "✕" : "☰"}
         </button>
 
-        <nav className={`topnav__links ${open ? "isOpen" : ""}`}
+        <nav
+          className={`topnav__links ${open ? "isOpen" : ""}`}
           onClick={() => setOpen(false)}
         >
-          <Link className="navLink" href="/dashboard">المواد</Link>
-          <Link className="navLink" href="/mcq">اختبارات MCQ</Link>
+          <Link className="navLink" href="/dashboard">
+            المواد
+          </Link>
+          <Link className="navLink" href="/mcq">
+            اختبارات MCQ
+          </Link>
 
           {canManage ? (
             <>
-              <Link className="navLink" href="/upload">رفع محتوى</Link>
-              <Link className="navLink" href="/admin/courses">إدارة المواد</Link>
-              <Link className="navLink" href="/admin/mcq">إدارة الأسئلة</Link>
+              <Link className="navLink" href="/upload">
+                رفع محتوى
+              </Link>
+              <Link className="navLink" href="/admin/courses">
+                إدارة المواد
+              </Link>
+              <Link className="navLink" href="/admin/mcq">
+                إدارة الأسئلة
+              </Link>
             </>
           ) : null}
+
+          {/* ✅ زرار Dark/Light/System */}
+          <ThemeToggle />
 
           <span className="chip" title="الدور الحالي">
             👤 {roleLabel(role)}
